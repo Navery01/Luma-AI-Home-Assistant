@@ -1,0 +1,156 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "homeautoapi"
+version = "0.1.0"
+description = "Home Automation API for intelligent assistant"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "Neil Avery", email = "nvavery@gmail.com"}
+]
+keywords = ["home-automation", "api", "ai-assistant"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "fastapi==0.136.1",
+    "uvicorn[standard]==0.46.0",
+    "pydantic==2.13.4",
+    "requests==2.33.1",
+    "annotated-doc==0.0.4",
+    "annotated-types==0.7.0",
+    "anyio==4.13.0",
+    "asttokens==3.0.1",
+    "attrs==26.1.0",
+    "build==1.5.0",
+    "certifi==2026.4.22",
+    "charset-normalizer==3.4.7",
+    "click==8.3.3",
+    "colorama==0.4.6",
+    "comm==0.2.3",
+    "debugpy==1.8.20",
+    "decorator==5.2.1",
+    "distro==1.9.0",
+    "executing==2.2.1",
+    "h11==0.16.0",
+    "httpcore==1.0.9",
+    "httptools==0.7.1",
+    "httpx==0.28.1",
+    "idna==3.13",
+    "inflection==0.5.1",
+    "ipython-pygments-lexers==1.1.1",
+    "jedi==0.20.0",
+    "jiter==0.14.0",
+    "jsonschema==4.26.0",
+    "jsonschema-specifications==2025.9.1",
+    "jupyter-client==8.8.0",
+    "jupyter-core==5.9.1",
+    "matplotlib-inline==0.2.2",
+    "nest-asyncio==1.6.0",
+    "numpy==2.4.4",
+    "openai==2.36.0",
+    "openapi==2.0.0",
+    "packaging==26.2",
+    "parso==0.8.7",
+    "pillow==12.2.0",
+    "platformdirs==4.9.6",
+    "prompt-toolkit==3.0.52",
+    "psutil==7.2.2",
+    "pure-eval==0.2.3",
+    "pydantic-core==2.46.4",
+    "pygments==2.20.0",
+    "pyproject-hooks==1.2.0",
+    "python-dateutil==2.9.0.post0",
+    "python-dotenv==1.2.2",
+    "pyyaml==6.0.3",
+    "pyzmq==27.1.0",
+    "referencing==0.37.0",
+    "rpds-py==0.30.0",
+    "six==1.17.0",
+    "sniffio==1.3.1",
+    "stack-data==0.6.3",
+    "starlette==1.0.0",
+    "tornado==6.5.5",
+    "tqdm==4.67.3",
+    "traitlets==5.15.0",
+    "typing-inspection==0.4.2",
+    "typing-extensions==4.15.0",
+    "urllib3==2.6.3",
+    "watchfiles==1.1.1",
+    "wcwidth==0.7.0",
+    "websockets==15.0",
+    "deepgram-sdk>=6.1.1",
+    "sqlalchemy>=2.0.49",
+    "asyncpg>=0.31.0",
+    "greenlet>=3.5.0",
+    "cartesia[websockets]>=3.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "isort>=5.12.0",
+    "mypy>=1.5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Navery01/home-auto-api"
+Repository = "https://github.com/Navery01/home-auto-api"
+"Bug Tracker" = "https://github.com/Navery01/home-auto-api/issues"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ['py39', 'py310', 'py311']
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.uv.workspace]
+members = [
+    ".",
+    ".",
+    ".",
+    ".",
+    ".",
+    ".",
+    ".",
+]
+
+[tool.uv.sources]
+homeautoapi = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "homeautoapi",
+]

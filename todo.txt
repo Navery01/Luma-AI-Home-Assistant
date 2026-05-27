@@ -1,0 +1,30 @@
+  
+  //Optimizations
+  1. Cache embeddings in the DB — eliminates a redundant API call on every single request
+  2. Switch to gpt-4o-mini as default — immediate 15x cost reduction, negligible quality loss for home automation
+  3. Add is_complete to AgentResponseSchema — enables clean loop termination
+  4. Implement the loop with the 2-iteration cap and minimal result summarization
+  5. Escalate to gpt-4o only on needs_clarification=True or complex multi-device commands
+
+  Prioritized Recommendations
+
+  High impact, low effort:
+
+  1. Write the README. Architecture diagram, setup instructions, a demo GIF or video. This single change has the highest ROI for recruiter impressions.
+  2. Implement TTS with Cartesia (the key is already configured). Completing the voice loop is the obvious missing piece.
+  3. Abstract the model requirements. Use LiteLLM to create a pool of LLM providers that the agent can pull from
+  3. Add conversation history. Store the last N turns in memory and pass them into the OpenAI call. 10-15 lines of code, major conceptual upgrade.
+  4. Delete .env and add .env.example. If real credentials are in version control, rotate them.
+
+  Medium impact, medium effort:
+
+  5. Add an agent loop. After the LLM returns actions, execute them, get a status back from HA, and optionally let the LLM respond to failures. Even a simple retry
+  pattern demonstrates agent reasoning.
+  6. Add streaming to the LLM response. Stream the chat response back through the WebSocket alongside the structured actions. Shows understanding of UX for AI.
+  7. Cache embeddings. Store device embeddings in the DB so you're not re-embedding the full registry on every request. Shows cost/latency awareness.
+
+  Lower priority but differentiating:
+
+  8. Write at least one test file. A fixture that mocks the HA API and verifies your agent returns the right tool calls for a given query is simple and impressive.
+  9. Add an evaluation notebook. A Jupyter notebook that tests 20 voice commands and scores correctness shows you think about LLM eval — a highly valued skill.
+  10. Consider multi-model support. Abstract the LLM client so you can swap in Anthropic Claude or a local model. This is table stakes for senior AI eng roles.
