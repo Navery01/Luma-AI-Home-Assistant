@@ -54,7 +54,7 @@ A real-time voice-controlled home automation backend. Speak a natural-language c
 ### `STTProvider` — Speech-to-Text
 Manages a streaming connection to **Deepgram** (nova-3) over a WebSocket. Receives raw PCM audio chunks from the client, forwards them to Deepgram, and fires a `speech_final` event when a complete utterance is detected. Implements automatic reconnection with exponential backoff and a keepalive loop to maintain the Deepgram session.
 
-### `AgentDispatcher` — Agentic Loop
+### `Agent` — Agentic Loop
 The core reasoning engine. Runs a multi-stage loop (up to 2 iterations) to reliably translate a user utterance into executed Home Assistant actions:
 
 1. **Intent Classification** — Determines whether the utterance is an actionable device command or a conversational query.
@@ -70,7 +70,7 @@ Computes OpenAI embeddings for the user query and the serialised device registry
 ### `TTSProvider` — Text-to-Speech
 Connects to **Cartesia** (sonic-3) over its WebSocket API, pushes the agent's `chat_response`, and streams returned audio chunks directly back to the client WebSocket as binary frames. Defaults to `wav / pcm_f32le / 44.1kHz`.
 
-### `HomeAssistantProvider` — HA Client
+### `HAMCPClient` — HA Client
 Wraps the Home Assistant REST and WebSocket APIs. Provides:
 - `get_light_devices()` / `get_scenes()` — live entity state reads
 - `set_light_state()` — controls brightness, color, effects, speed, intensity, and reverse via both the light service and auxiliary `number.*` / `switch.*` entities
