@@ -6,7 +6,7 @@ A real-time voice-controlled home automation backend. Speak a natural-language c
 
 ## Architecture
 
-![Alt Text]()
+![Alt Text](https://github.com/Navery01/Orion-Home-Assistant-Agent/blob/main/voice_assistant_architecture_v4.svg)
 
 ---
 
