@@ -1,0 +1,68 @@
+import litellm, json
+from homeautoapi.ha_mcp_client import HAMCPClient
+
+from pprint import pprint
+
+class Agent:
+    """
+    A model agnostic agent that can use any LLM supported by LiteLLM and can be extended to use any tool.
+    LiteLLM reads these standard env var names automatically:
+    ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, GROQ_API_KEY
+    """
+    
+    def __init__(self, 
+                 name: str="Orion", 
+                 model:str= "anthropic/claude-sonnet-4-6" #openai/gpt-4o"
+                 ):
+        self.name = name
+        self.model = model
+    
+        
+        
+       
+
+    async def run_agent(self, user_message:str, tools:list[dict], mcp_client:HAMCPClient, model:str | None = None) -> str:
+        """Run the Home Assistant agent with the given user message, tools, and MCP client."""
+        model = model or self.model
+        
+        INITIAL_SYSTEM_PROMPT = f"""
+            You are {self.name}, the AI personality for this home. You have direct access to Home Assistant
+            and can control lights, climate, media players, and more. Be helpful, warm, and concise.
+            When you need to act on the home, use the available tools ensure you are familiar with the device states before taking any action.
+            Do not make up device names or actions. Do not include emojis in your responses. 
+            """.strip()
+        
+
+        messages = [
+            {"role": "system", "content": INITIAL_SYSTEM_PROMPT},
+            {"role": "user",   "content": user_message},
+            ]
+
+        while True:
+            response = await litellm.acompletion(
+                model = model,
+                messages = messages,
+                tools = tools,
+                tool_choice = "auto",
+                max_tokens = 1000
+            )
+
+            msg: dict = response.choices[0].message # type: ignore
+            messages.append(msg)
+
+            if not msg.get("tool_calls"):
+                return msg.get("content", "")
+            
+            for tool_call in msg.get("tool_calls", []):
+                tool_name = tool_call.get("function", {}).get("name")
+                tool_args = json.loads(tool_call.get("function", {}).get("arguments", "{}"))
+
+                result = await mcp_client.call_tool(tool_name, tool_args)
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id":tool_call.get("id"),
+                    "name": tool_name,
+                    "content": json.dumps(result)
+                })
+            print(f"{'='*20} Agent Messages {'='*20}")
+            pprint(msg.get("content", ""))
