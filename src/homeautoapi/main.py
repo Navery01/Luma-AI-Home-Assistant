@@ -31,7 +31,7 @@ async def handle_request(request: dict):
     
     return {"message": "Request received", "request": request, "result": "OK"}
 
-@app.websocket("/ws/stt")
+@app.websocket("/ws/assistant")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     await STT_PROVIDER.transcribe(websocket)
