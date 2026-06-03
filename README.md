@@ -6,46 +6,7 @@ A real-time voice-controlled home automation backend. Speak a natural-language c
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                          Client (Browser / App)                     │
-│                                                                     │
-│   Microphone audio (PCM)  ──────────►  WebSocket /ws/assistant      │
-│   Speaker audio (PCM)     ◄────────────────────────────────────     │
-└────────────────────────────────┬────────────────────────────────────┘
-                                 │
-                    ┌────────────▼────────────┐
-                    │       FastAPI Server     │
-                    │        (Uvicorn)         │
-                    └────────────┬────────────┘
-                                 │
-              ┌──────────────────▼──────────────────┐
-              │           STTProvider               │
-              │  Streams PCM audio → Deepgram        │
-              │  nova-3 · linear16 · 48kHz          │
-              │  Reconnect / keepalive loop         │
-              └──────────────────┬──────────────────┘
-                                 │ speech_final transcript
-              ┌──────────────────▼──────────────────┐
-              │         AgentDispatcher             │
-              │         (Agentic Loop)              │
-              │                                     │
-              │  Stage 1 ── Intent Classification   │
-              │  Stage 2 ── RAG Device Retrieval    │◄──── HomeAssistantProvider
-              │  Stage 3 ── LLM Action Planning     │      (HA REST API)
-              │  Stage 4 ── HA Action Execution     │
-              │  Stage 5 ── Status Verification     │
-              │  Stage 6 ── Retry / Clarify         │
-              │             (2-iteration cap)       │
-              └──────────────────┬──────────────────┘
-                                 │ chat_response (str)
-              ┌──────────────────▼──────────────────┐
-              │           TTSProvider               │
-              │  Synthesizes text → Cartesia        │
-              │  sonic-3 · wav · pcm_f32le · 44kHz  │
-              │  Streams audio chunks → WebSocket   │
-              └─────────────────────────────────────┘
-```
+![Alt Text]()
 
 ---
 
