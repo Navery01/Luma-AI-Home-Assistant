@@ -11,7 +11,7 @@ class Agent:
     """
     
     def __init__(self, 
-                 name: str="Orion", 
+                 name: str="Luma", 
                  model:str= "anthropic/claude-sonnet-4-6" #openai/gpt-4o"
                  ):
         self.name = name
