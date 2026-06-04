@@ -107,7 +107,7 @@ A real-time voice-controlled home automation backend. Speak a natural-language c
 
 ## Architecture
 
-![Alt Text](https://github.com/Navery01/Luma-AI-Home-Assistant/blob/main/voice_assistant_architecture_v5.svg)
+![Luma Home Assistant Agent architecture diagram](https://github.com/Navery01/Luma-AI-Home-Assistant/blob/main/voice_assistant_architecture_v5.svg)
 
 ---
 
