@@ -1,4 +1,4 @@
-# Orion Home Assistant Agent
+# Luma Home Assistant Agent
 
 A real-time voice-controlled home automation backend. Speak a natural-language command, and the system transcribes it, reasons over your device registry, executes the right actions in Home Assistant, and speaks a confirmation back — all over a single persistent WebSocket connection.
 
@@ -6,7 +6,7 @@ A real-time voice-controlled home automation backend. Speak a natural-language c
 
 ## Architecture
 
-![Alt Text](https://github.com/Navery01/Orion-Home-Assistant-Agent/blob/main/voice_assistant_architecture_v5.svg)
+![Luma Home Assistant Agent architecture diagram](https://github.com/Navery01/Luma-AI-Home-Assistant/blob/main/voice_assistant_architecture_v5.svg)
 
 ---
 

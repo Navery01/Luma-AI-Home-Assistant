@@ -99,7 +99,7 @@ Requires-Dist: isort>=5.12.0; extra == "dev"
 Requires-Dist: mypy>=1.5.0; extra == "dev"
 Dynamic: license-file
 
-# HomeAutoAPI
+# Luma Home Assistant Agent
 
 A real-time voice-controlled home automation backend. Speak a natural-language command, and the system transcribes it, reasons over your device registry, executes the right actions in Home Assistant, and speaks a confirmation back — all over a single persistent WebSocket connection.
 
@@ -107,46 +107,7 @@ A real-time voice-controlled home automation backend. Speak a natural-language c
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                          Client (Browser / App)                     │
-│                                                                     │
-│   Microphone audio (PCM)  ──────────►  WebSocket /ws/assistant      │
-│   Speaker audio (PCM)     ◄────────────────────────────────────     │
-└────────────────────────────────┬────────────────────────────────────┘
-                                 │
-                    ┌────────────▼────────────┐
-                    │       FastAPI Server     │
-                    │        (Uvicorn)         │
-                    └────────────┬────────────┘
-                                 │
-              ┌──────────────────▼──────────────────┐
-              │           STTProvider               │
-              │  Streams PCM audio → Deepgram        │
-              │  nova-3 · linear16 · 48kHz          │
-              │  Reconnect / keepalive loop         │
-              └──────────────────┬──────────────────┘
-                                 │ speech_final transcript
-              ┌──────────────────▼──────────────────┐
-              │         AgentDispatcher             │
-              │         (Agentic Loop)              │
-              │                                     │
-              │  Stage 1 ── Intent Classification   │
-              │  Stage 2 ── RAG Device Retrieval    │◄──── HomeAssistantProvider
-              │  Stage 3 ── LLM Action Planning     │      (HA REST API)
-              │  Stage 4 ── HA Action Execution     │
-              │  Stage 5 ── Status Verification     │
-              │  Stage 6 ── Retry / Clarify         │
-              │             (2-iteration cap)       │
-              └──────────────────┬──────────────────┘
-                                 │ chat_response (str)
-              ┌──────────────────▼──────────────────┐
-              │           TTSProvider               │
-              │  Synthesizes text → Cartesia        │
-              │  sonic-3 · wav · pcm_f32le · 44kHz  │
-              │  Streams audio chunks → WebSocket   │
-              └─────────────────────────────────────┘
-```
+![Luma Home Assistant Agent architecture diagram](https://github.com/Navery01/Luma-AI-Home-Assistant/blob/main/voice_assistant_architecture_v5.svg)
 
 ---
 
@@ -155,7 +116,7 @@ A real-time voice-controlled home automation backend. Speak a natural-language c
 ### `STTProvider` — Speech-to-Text
 Manages a streaming connection to **Deepgram** (nova-3) over a WebSocket. Receives raw PCM audio chunks from the client, forwards them to Deepgram, and fires a `speech_final` event when a complete utterance is detected. Implements automatic reconnection with exponential backoff and a keepalive loop to maintain the Deepgram session.
 
-### `AgentDispatcher` — Agentic Loop
+### `Agent` — Agentic Loop
 The core reasoning engine. Runs a multi-stage loop (up to 2 iterations) to reliably translate a user utterance into executed Home Assistant actions:
 
 1. **Intent Classification** — Determines whether the utterance is an actionable device command or a conversational query.
@@ -171,7 +132,7 @@ Computes OpenAI embeddings for the user query and the serialised device registry
 ### `TTSProvider` — Text-to-Speech
 Connects to **Cartesia** (sonic-3) over its WebSocket API, pushes the agent's `chat_response`, and streams returned audio chunks directly back to the client WebSocket as binary frames. Defaults to `wav / pcm_f32le / 44.1kHz`.
 
-### `HomeAssistantProvider` — HA Client
+### `HAMCPClient` — HA Client
 Wraps the Home Assistant REST and WebSocket APIs. Provides:
 - `get_light_devices()` / `get_scenes()` — live entity state reads
 - `set_light_state()` — controls brightness, color, effects, speed, intensity, and reverse via both the light service and auxiliary `number.*` / `switch.*` entities
