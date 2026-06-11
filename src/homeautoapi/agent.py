@@ -34,7 +34,7 @@ class Agent:
         
 
         messages = [
-            {"role": "system", "content": INITIAL_SYSTEM_PROMPT},
+            {"role": "system", "content": [{"type": "text", "text": INITIAL_SYSTEM_PROMPT, "cache_control":{"type":"ephemeral"}}]},
             {"role": "user",   "content": user_message},
             ]
 
@@ -44,7 +44,8 @@ class Agent:
                 messages = messages,
                 tools = tools,
                 tool_choice = "auto",
-                max_tokens = 1000
+                max_tokens = 1000,
+                timeout = 20
             )
 
             msg: dict = response.choices[0].message # type: ignore
