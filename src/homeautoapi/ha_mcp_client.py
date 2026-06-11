@@ -1,12 +1,26 @@
 import json
 import os
+from click.testing import Result
 import httpx
+from enum import Enum
+from pydantic import BaseModel
+
+
+class RouteResult(str, Enum):
+    SUCCESS = "SUCCESS"
+    FAILURE = "FAILURE"
+
+class RouteResponse(BaseModel):
+    response_speech: str | None = None
+    result: RouteResult = RouteResult.SUCCESS
+
 
 class HAMCPClient:
     def __init__(self, 
                  base_url:str=os.getenv("HA_BASE_URL", "http://homeassistant.local:8123"), 
                  token: str=os.getenv("HA_TOKEN", "")):
-        self.base_url = f"{base_url}/api/mcp"
+        self.base_url = base_url
+        self.mcp_url = f"{base_url}/api/mcp"
         self.session_id = None
         self._rpc_id = 0
         self.token = token
@@ -15,6 +29,26 @@ class HAMCPClient:
             "Authorization": f"Bearer {self.token}",
             "Accept": "application/json, text/event-stream",
         }
+
+    async def route_intent(self, utterance: str, language: str = "en") -> RouteResponse:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{self.base_url}/api/conversation/process",
+                headers=self.headers,
+                json={"text": utterance, "language": language},
+            )
+
+            response.raise_for_status()
+            data = response.json()
+            if data.get("response", {}).get("response_type") == "action_done":
+                return RouteResponse(
+                    result=RouteResult.SUCCESS,
+                    response_speech=data["response"].get("speech", {}).get("plain", {}).get("speech", "")
+                )
+            else:
+                return RouteResponse(result=RouteResult.FAILURE, response_speech=data.get("response", {}).get("speech", {}).get("plain", {}).get("speech", ""))
+
+            
     
     def _next_rpc_id(self):
         """Generate the next RPC ID for JSON-RPC calls."""
@@ -25,7 +59,7 @@ class HAMCPClient:
         """Send a POST request to the MCP endpoint with the given payload and handle the response."""
         async with httpx.AsyncClient(timeout=timeout) as client:
             response = await client.post(
-                self.base_url,
+                self.mcp_url,
                 headers=self.headers,
                 json=payload,
             )
@@ -57,7 +91,7 @@ class HAMCPClient:
             payload["params"] = params
 
         async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.post(self.base_url, headers=self.headers, json=payload)
+            response = await client.post(self.mcp_url, headers=self.headers, json=payload)
         response.raise_for_status()
 
 
