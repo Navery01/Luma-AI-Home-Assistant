@@ -31,6 +31,7 @@ class HAMCPClient:
         }
 
     async def route_intent(self, utterance: str, language: str = "en") -> RouteResponse:
+        print(f"Routing intent for utterance: {utterance}")
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 f"{self.base_url}/api/conversation/process",

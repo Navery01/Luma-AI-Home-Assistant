@@ -12,7 +12,7 @@ import os, asyncio
 from fastapi import WebSocket
 
 class TTSOutputFormat:
-    def __init__(self, container: str = "wav", encoding: str = "pcm_f32le", sample_rate: int = 44100):
+    def __init__(self, container: str = "raw", encoding: str = "pcm_f32le", sample_rate: int = 44100):
         self.container = container
         self.encoding = encoding
         self.sample_rate = sample_rate
@@ -24,7 +24,7 @@ class TTSOutputFormat:
             "sample_rate": self.sample_rate
         }
 class TTSVoice:
-    def __init__(self, mode: str = "id", id: str = "default"):
+    def __init__(self, mode: str = "id", id: str = "51348ef5-2931-4f0c-87ea-ba57a953efda"):
         self.mode = mode
         self.id = id
 
@@ -54,7 +54,7 @@ class TTSProvider:
             voice=voice.to_dict(), # type: ignore
             output_format=output_format.to_dict()
         )
-            
+            print(f"Sending text to TTS provider: {message}")
             ctx.push(message)
 
             ctx.no_more_inputs()
@@ -63,3 +63,5 @@ class TTSProvider:
                 if response.type == "chunk" and response.audio:
                     print(f"Received audio chunk of size {len(response.audio)} bytes")
                     asyncio.create_task(self._websocket.send_bytes(response.audio))
+                else: 
+                    print(f"Received non-audio response: {response}")
