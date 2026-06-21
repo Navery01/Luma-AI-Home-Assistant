@@ -15,49 +15,79 @@ async def read_root():
 @app.post("/api/request")
 async def handle_request(request: dict):
     """Useful for testing with tools like Postman"""
-    asyncio.create_task(_dispatch_agent(request.get("query", "")))
+
+    AGENT = Agent()
+    MCP_CLIENT = HAMCPClient()
+
+    AGENT = Agent()
+    MCP_CLIENT = HAMCPClient()
+    await MCP_CLIENT.initialize()
+    ha_tools = await MCP_CLIENT.list_tools()
+    for tool in ha_tools:
+        desc = tool.get("description", "(no description)")[:80]
+        print(f"  - {tool['name']:<40} {desc}")
+
+    await AGENT.run_agent(
+        user_message = request.get("query", ""),
+        tools = MCP_CLIENT.to_litellm_tools(ha_tools),
+        mcp_client = MCP_CLIENT
+    )
+
+    # await _on_final_transcript(TranscriptEvent(text=request.get("query", ""), is_final=True, speech_final=True, raw_result=None))
     
     return {"message": "Request received", "request": request, "result": "OK"}
 
-@app.websocket("/ws/assistant")
+@app.websocket("/ws/assistant/")
+@app.websocket("/ws/assistant/")
 async def websocket_endpoint(websocket: WebSocket):
+    STT_PROVIDER = STTProvider(app)
+    STT_PROVIDER.connect_final_transcript_handler(lambda event: _on_final_transcript(event, websocket=websocket))
+
+    STT_PROVIDER = STTProvider(app)
+    STT_PROVIDER.connect_final_transcript_handler(lambda event: _on_final_transcript(event, websocket=websocket))
+
     await websocket.accept()
     await STT_PROVIDER.transcribe(websocket)
 
-async def _on_final_transcript(event):
+async def _on_final_transcript(event, *, websocket: WebSocket):
+    TTS_PROVIDER = TTSProvider(websocket)
+async def _on_final_transcript(event, *, websocket: WebSocket):
+    TTS_PROVIDER = TTSProvider(websocket)
     pprint(f"Final transcript: {event.text}")
-    asyncio.create_task(_dispatch_agent(event.text))
+    agent_response = await _dispatch_agent(event.text)
+
+    await TTS_PROVIDER.synthesize(agent_response)
+
+    agent_response = await _dispatch_agent(event.text)
+
+    await TTS_PROVIDER.synthesize(agent_response)
 
 
-async def _dispatch_agent(user_text: str) -> None:
+
+async def _dispatch_agent(user_text: str) -> str:
+async def _dispatch_agent(user_text: str) -> str:
     """Initialize the agent with Home Assistant tools and run it with the user's message."""
+    AGENT = Agent()
+    MCP_CLIENT = HAMCPClient()  
+    AGENT = Agent()
+    MCP_CLIENT = HAMCPClient()  
     await MCP_CLIENT.initialize()
     ha_tools = await MCP_CLIENT.list_tools()
-
-    route_response = await MCP_CLIENT.route_intent(user_text)
-    if route_response.result == RouteResult.SUCCESS:
-        print(f"Intent routed successfully with response speech: {route_response.response_speech}")
-        return
-    else:
-        try:
-            await AGENT.run_agent(
-                user_message = user_text,
-                tools = MCP_CLIENT.to_litellm_tools(ha_tools),
-                mcp_client = MCP_CLIENT
-            )
-        except Exception as exc:
-            print(f"RAG pipeline failed: {exc}")
-
-MCP_CLIENT = HAMCPClient()
-AGENT = Agent()
-
-STT_PROVIDER = STTProvider(app)
-TTS_PROVIDER = TTSProvider()
-
-STT_PROVIDER.connect_final_transcript_handler(_on_final_transcript)
-
-
-
+    try:
+        agent_response = await AGENT.run_agent(
+        agent_response = await AGENT.run_agent(
+        user_message = user_text,
+        tools = MCP_CLIENT.to_litellm_tools(ha_tools),
+        mcp_client = MCP_CLIENT
+    )
+        
+        return agent_response
+        
+        return agent_response
+    except Exception as exc:
+        print(f"RAG pipeline failed: {exc}")
+        return "Failed"
+    return "OK"
 
 def run():
     logging.info("Starting Home Automation API...")

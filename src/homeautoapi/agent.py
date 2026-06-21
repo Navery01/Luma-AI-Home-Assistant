@@ -24,7 +24,7 @@ class Agent:
     async def run_agent(self, user_message:str, tools:list[dict], mcp_client:HAMCPClient, model:str | None = None) -> str:
         """Run the Home Assistant agent with the given user message, tools, and MCP client."""
         model = model or self.model
-        
+        print(f"Running agent with model {model}")
         INITIAL_SYSTEM_PROMPT = f"""
             You are {self.name}, the AI personality for this home. You have direct access to Home Assistant
             and can control lights, climate, media players, and more. Be helpful, warm, and concise.

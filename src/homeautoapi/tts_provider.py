@@ -9,6 +9,7 @@ The provider should have a subscribable signal for when the audio bytes are read
 from cartesia import Cartesia
 from fastapi import WebSocketDisconnect
 import os, asyncio
+from fastapi import WebSocket
 
 class TTSOutputFormat:
     def __init__(self, container: str = "wav", encoding: str = "pcm_f32le", sample_rate: int = 44100):
@@ -35,12 +36,12 @@ class TTSVoice:
 
 
 class TTSProvider:
-    def __init__(self, api_key: str = os.getenv("CARTESIA_API_KEY", "")):
+    def __init__(self, websocket: WebSocket, api_key: str = os.getenv("CARTESIA_API_KEY", "")):
         self._client = Cartesia(api_key=api_key)
+        self._websocket = websocket
         self._RECONNECT_MAX_ATTEMPTS = 5
 
     async def synthesize(self, 
-                         websocket, 
                          message: str,
                          *,
                          model_id: str = "sonic-3",
@@ -60,17 +61,5 @@ class TTSProvider:
 
             for response in ctx.receive():
                 if response.type == "chunk" and response.audio:
-                    asyncio.create_task(websocket.send_bytes(response.audio))
-        while True:
-            try:
-                message = await websocket.receive()
-
-                # response = await self._client.tts.generate(
-                #     model_id=model_id,
-                #     transcript=message,
-                #     voice=voice.to_dict(),
-                #     output_format=output_format.to_dict()
-                # )
-
-            except WebSocketDisconnect:
-                break
+                    print(f"Received audio chunk of size {len(response.audio)} bytes")
+                    asyncio.create_task(self._websocket.send_bytes(response.audio))
