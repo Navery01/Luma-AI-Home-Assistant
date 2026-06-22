@@ -21,7 +21,13 @@ class Agent:
         
        
 
-    async def run_agent(self, user_message:str, tools:list[dict], mcp_client:HAMCPClient, model:str | None = None) -> str:
+    async def run_agent(self,
+                        user_message:str,
+                        tools:list[dict], 
+                        mcp_client:HAMCPClient,
+                        client_facts:list[str] = [],
+                        chat_history:list = [], 
+                        model:str | None = None) -> str:
         """Run the Home Assistant agent with the given user message, tools, and MCP client."""
         model = model or self.model
         print(f"Running agent with model {model}")
@@ -30,13 +36,14 @@ class Agent:
             and can control lights, climate, media players, and more. Be helpful, warm, and concise.
             When you need to act on the home, use the available tools ensure you are familiar with the device states before taking any action.
             Do not make up device names or actions. Do not include emojis in your responses. 
-            """.strip()
+            """.strip() + ("\n\n" + "\n".join([f"Session Fact: {fact}" for fact in client_facts]) if client_facts else "")
         
 
         messages = [
             {"role": "system", "content": [{"type": "text", "text": INITIAL_SYSTEM_PROMPT, "cache_control":{"type":"ephemeral"}}]},
             {"role": "user",   "content": user_message},
-            ]
+            {"role": "system", "content": [{"type": "text", "text": "Previous Chat: " + entry} for entry in chat_history]}
+        ]
 
         while True:
             response = await litellm.acompletion(
@@ -45,7 +52,7 @@ class Agent:
                 tools = tools,
                 tool_choice = "auto",
                 max_tokens = 1000,
-                timeout = 20
+                timeout = 40
             )
 
             msg: dict = response.choices[0].message # type: ignore

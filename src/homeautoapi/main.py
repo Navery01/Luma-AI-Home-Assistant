@@ -6,6 +6,7 @@ from homeautoapi.stt_provider import STTProvider
 from homeautoapi.agent import Agent
 from homeautoapi.ha_mcp_client import HAMCPClient, RouteResult
 from homeautoapi.tts_provider import TTSProvider
+from homeautoapi.db_helper import *
 app = FastAPI()
 
 @app.get("/api/")
@@ -16,23 +17,11 @@ async def read_root():
 async def handle_request(request: dict):
     """Useful for testing with tools like Postman"""
 
-    AGENT = Agent()
-    MCP_CLIENT = HAMCPClient()
-    await MCP_CLIENT.initialize()
-    ha_tools = await MCP_CLIENT.list_tools()
-    for tool in ha_tools:
-        desc = tool.get("description", "(no description)")[:80]
-        print(f"  - {tool['name']:<40} {desc}")
+    agent_response = await _dispatch_agent(request.get("message", ""))
 
-    await AGENT.run_agent(
-        user_message = request.get("query", ""),
-        tools = MCP_CLIENT.to_litellm_tools(ha_tools),
-        mcp_client = MCP_CLIENT
-    )
+    await add_chat_log(client_id="default_client", message=request.get("message", ""), response=agent_response)
 
-    # await _on_final_transcript(TranscriptEvent(text=request.get("query", ""), is_final=True, speech_final=True, raw_result=None))
-    
-    return {"message": "Request received", "request": request, "result": "OK"}
+    return {"message": "Request received", "request": request, "result": agent_response}
 
 @app.websocket("/ws/assistant/")
 async def websocket_endpoint(websocket: WebSocket):
@@ -46,6 +35,8 @@ async def _on_final_transcript(event, *, websocket: WebSocket):
     TTS_PROVIDER = TTSProvider(websocket)
     pprint(f"Final transcript: {event.text}")
     agent_response = await _dispatch_agent(event.text)
+
+    await add_chat_log(client_id="default_client", message=event.text, response=agent_response)
 
     await TTS_PROVIDER.synthesize(agent_response)
 
@@ -63,10 +54,15 @@ async def _dispatch_agent(user_text: str) -> str:
         return route_response.response_speech or "OK"
     else:
         try:
+            client_facts = await get_client_facts("default_client", limit=5)
+            chat_history = await get_recent_chat_logs("default_client", limit=2)
+
             agent_response = await AGENT.run_agent(
                 user_message = user_text,
                 tools = MCP_CLIENT.to_litellm_tools(ha_tools),
-                mcp_client = MCP_CLIENT
+                mcp_client = MCP_CLIENT,
+                client_facts = client_facts,
+                chat_history = chat_history
             )
             return agent_response
         except Exception as exc:
