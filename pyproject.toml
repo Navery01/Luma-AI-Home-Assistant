@@ -95,6 +95,7 @@ dependencies = [
     "greenlet>=3.5.0",
     "cartesia[websockets]>=3.1.0",
     "litellm>=1.87.0",
+    "pgvector>=0.3.6",
 ]
 
 [project.optional-dependencies]

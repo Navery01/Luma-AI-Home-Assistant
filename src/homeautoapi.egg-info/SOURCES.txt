@@ -4,6 +4,7 @@ pyproject.toml
 src/homeautoapi/__init__.py
 src/homeautoapi/__main__.py
 src/homeautoapi/agent.py
+src/homeautoapi/db_helper.py
 src/homeautoapi/ha_mcp_client.py
 src/homeautoapi/main.py
 src/homeautoapi/rag_dispatcher.py
