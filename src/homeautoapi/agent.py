@@ -1,6 +1,6 @@
 import litellm, json
 from homeautoapi.ha_mcp_client import HAMCPClient
-
+from homeautoapi.db_helper import ClientFact
 from pprint import pprint
 
 class Agent:
@@ -25,7 +25,7 @@ class Agent:
                         user_message:str,
                         tools:list[dict], 
                         mcp_client:HAMCPClient,
-                        client_facts:list[str] = [],
+                        client_facts:list[ClientFact] = [],
                         chat_history:list = [], 
                         model:str | None = None) -> str:
         """Run the Home Assistant agent with the given user message, tools, and MCP client."""
@@ -36,9 +36,9 @@ class Agent:
             and can control lights, climate, media players, and more. Be helpful, warm, and concise.
             When you need to act on the home, use the available tools ensure you are familiar with the device states before taking any action.
             Do not make up device names or actions. Do not include emojis in your responses. 
-            """.strip() + ("\n\n" + "\n".join([f"Session Fact: {fact}" for fact in client_facts]) if client_facts else "")
+            """.strip() + ("\n\n" + "\n".join([f"Session Fact: {fact.fact}" for fact in client_facts]) if client_facts else "")
         
-
+    # TODO: Chat history should be injected as user/assistant alternating pairs.
         messages = [
             {"role": "system", "content": [{"type": "text", "text": INITIAL_SYSTEM_PROMPT, "cache_control":{"type":"ephemeral"}}]},
             {"role": "user",   "content": user_message},

@@ -1,3 +1,7 @@
+# TODO:
+#   1. Fix the client_facts bug and the chat history placement
+#   2. Clean up rag_dispatcher.py and the pyproject.toml dependencies
+
 import logging
 import uvicorn, asyncio
 from pprint import pprint
@@ -6,7 +10,7 @@ from homeautoapi.stt_provider import STTProvider
 from homeautoapi.agent import Agent
 from homeautoapi.ha_mcp_client import HAMCPClient, RouteResult
 from homeautoapi.tts_provider import TTSProvider
-from homeautoapi.db_helper import *
+from homeautoapi.db_helper import add_chat_log, get_client_facts, get_recent_chat_logs
 app = FastAPI()
 
 @app.get("/api/")
@@ -31,6 +35,7 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     await STT_PROVIDER.transcribe(websocket)
 
+# TODO: multi-client
 async def _on_final_transcript(event, *, websocket: WebSocket):
     TTS_PROVIDER = TTSProvider(websocket)
     pprint(f"Final transcript: {event.text}")
@@ -41,7 +46,7 @@ async def _on_final_transcript(event, *, websocket: WebSocket):
     await TTS_PROVIDER.synthesize(agent_response)
 
 
-
+# TODO: multi-client
 async def _dispatch_agent(user_text: str) -> str:
     """Initialize the agent with Home Assistant tools and run it with the user's message."""
     AGENT = Agent()
