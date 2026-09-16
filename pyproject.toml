@@ -96,6 +96,9 @@ dependencies = [
     "cartesia[websockets]>=3.1.0",
     "litellm>=1.87.0",
     "pgvector>=0.3.6",
+    "langchain>=1.4.0",
+    "langchain-mcp-adapters>=0.3.2",
+    "langchain-anthropic>=1.7.2",
 ]
 
 [project.optional-dependencies]
